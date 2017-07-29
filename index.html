@@ -1,1 +1,98 @@
-Hello world
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="author" content="dipbhi">
+  <meta http-equiv="Access-Control-Allow-Origin" content="*">
+
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+</head>
+
+<body>
+  <div class="container" style="width:100%">
+    <div class="page-header">
+      <h2>font-transform</h2>
+    </div>
+    <div class="row">
+      <div class="col-md-6">
+        <h4>Text to be converted:</h4>
+        <div class="form-group">
+          <select id="ddl-src-font" class="form-control">
+          <option value="">Select source font</option>
+        </select>
+        </div>
+        <div class="form-group">
+          <textarea class="form-control" id="src" rows="20" cols="80" disabled></textarea>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <h4>Converted text:</h4>
+        <textarea id="dst" rows="23" cols="80" readonly></textarea>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+  <script>
+    var srcFonts = [{
+      text: "Terafont Kinnari",
+      value: "static/mapping/terafont-kinnari.json"
+    }];
+    $(function() {
+      for (var i = 0; i < srcFonts.length; i++) {
+        $("#ddl-src-font").append('<option value="' + srcFonts[i].value + '">' + srcFonts[i].text + '</option>');
+      }
+    });
+
+    var map;
+    $("#ddl-src-font").change(function() {
+      var current = this;
+      $.getJSON($(current).val(), function(r) {
+        map = r;
+        $("#src").removeAttr("disabled");
+      });
+    });
+
+    $("#src").change(function() {
+      transform();
+    });
+
+    function transform() {
+      var txt = $("#src").val(),
+        newTxt = "",
+        forwardPending = false;
+      for (var i = 0; i < txt.length; i++) {
+        var char = txt[i],
+          newChar = map[char];
+
+        if (!newChar) {
+          newChar = char;
+        }
+
+        if (map["backward"][char]) {
+          var l = newTxt.length;
+          newTxt = newTxt.substr(0, l - 1) + newChar + newTxt[l - 1];
+        } else {
+          newTxt += newChar;
+        }
+        if (forwardPending) {
+          var l = newTxt.length;
+          newTxt = newTxt.substr(0, l - 2) + newTxt[l - 1] + newTxt[l - 2];
+          forwardPending = false;
+        }
+
+        if (map["forward"][newChar]) {
+          forwardPending = true;
+        }
+      }
+
+      $("#dst").val(newTxt);
+    }
+  </script>
+</body>
+
+</html>
